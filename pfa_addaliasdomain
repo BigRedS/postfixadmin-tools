@@ -3,9 +3,8 @@
 use Mail::Postfixadmin;
 use strict;
 
-my $domain = shift;
+my $alias = shift;
 my $target = shift;
-
 
 my $v = Mail::Postfixadmin->new();
 my $version = $v->version;
@@ -15,17 +14,17 @@ if ($target eq ''){
 }
 
 
-$v->setDomain($domain);
-if($v->domainExists()){
-	print "Error: Domain $domain already exists\n";
+if($v->domainExists($alias)){
+	print "Error: Domain $alias already exists\n";
 	exit 1;
 }
-unless ($v->createAliasDomain( target => $target) ){
+
+unless ($v->createAliasDomain( 'alias' => $alias, 'target' => $target )){
 	print STDERR "Error: $v->{errstr}\n";
 }
 
 
-if($v->domainIsAlias){
+if($v->domainIsAlias($alias)){
 	exit 0;
 }else{
 	print STDOUT "Something's up. I tried to create the domain but it doesn't exist.\n";
