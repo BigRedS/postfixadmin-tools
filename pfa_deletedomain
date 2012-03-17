@@ -12,24 +12,21 @@ if(exists($opt{h})){
         exit 0; 
 }
 
-if ($domain eq '' || $domain eq '-h' || exists($opt{h})){
+if ($domain eq '' || $domain =~ /^-\w$/ || exists($opt{h})){
 	print usage();
 	exit 1;
 }
 
 my $v = Mail::Postfixadmin->new();
 
-$v->setDomain($domain);
-
-if ($v->domainExists){
-	if($v->domainIsAlias){
-		$v->removeAliasDomain;
+if ($v->domainExists($domain)){
+	if($v->domainIsAlias($domain)){
+		$v->removeAliasDomain($domain);
 	}else{
 		unless(exists($opt{U})){
-			foreach($v->getUsers){
+			foreach($v->getUsers($domain)){
 				print "removing $_ ";
-				$v->setUser($_);
-				if($v->removeUser){
+				if($v->removeUser($_)){
 					print "done\n"
 				}else{
 					print "ERROR: $v->{errstr}\n";
@@ -38,13 +35,13 @@ if ($v->domainExists){
 		}
 	}
 	print "removing domain $domain ";
-	$v->removeDomain();
+	$v->removeDomain($domain);
 }else{
 	print STDERR "Domain $domain not found\n";
 	exit 1
 }
 
-if ($v->domainExists){
+if ($v->domainExists($domain)){
 	print STDERR "Error: I deleted it, but it's still there\n";
 	exit 1;
 }else{
