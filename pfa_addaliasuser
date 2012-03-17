@@ -16,27 +16,26 @@ if ($targets[0] !~ /.+/){
 
 my $v = Mail::Postfixadmin->new();
 
-$v->setUser($user);
-if($v->userExists()){
+if( $v->userExists($user) ){
 	print STDERR "Error: User $user already exists\n";
 	exit(1);
 }
 my $domain;
-if($user =~ /@(.+)$/){
+if( $user =~ /@(.+)$/ ){
 	$domain = $1;
 }else{
 	print STDERR "User $user doesn't look like an email address\n";
 	exit(1);
 }
 
-$v->setUser($user);
 my $targets = join(', ', @targets);
 $v->createAliasUser(
+	alias  => $user,
 	target => $targets, 
 	domain => $domain
 );
 
-if($v->userIsAlias){
+if( $v->userIsAlias($user) ){
 	exit(0);
 }else{
 	print "Something's up, alias isn't there.\n";
