@@ -1,15 +1,21 @@
 #! /usr/bin/perl
 
 use Mail::Postfixadmin;
+use Getopts::Simple;
+
 use strict;
-my %opt;
+
 my $domain = shift;
 
 my $v = Mail::Postfixadmin->new();
 
-if(exists($opt{h}) || $domain eq '-h' || $domain eq ''){
+if ($domain =~ /^$/ || $domain =~ /^-?-h$/){
 	print usage();
-	exit 1;
+	exit 0;
+}
+
+if ($domain =~ /@/){
+	print "That looks like an email addres, not a domain\n";
 }
 
 if( $v->domainExists( $domain )){
