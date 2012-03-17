@@ -13,7 +13,6 @@ getopts('hfgp:u:', \%opt);
 # p = use supplied password
 
 
-
 if(exists($opt{h})){
         print usage();
         exit 0; 
@@ -25,28 +24,26 @@ if ($user eq ''){
 }
 
 my $v = Mail::Postfixadmin->new();
-$v->setUser($user);
-if($v->userExists()){
+if( $v->userExists($user) ){
         print "Error: User $user already exists\n";
         exit 1;
 }
 
 my $domain;
-if ($user =~ /\@(.+)$/){
+if ( $user =~ /\@(.+)$/ ){
 	$domain = $1;
-	$v->setDomain($domain);
-	if ($v->domainIsAlias){
+	# If we're being asked to create a user on an alias domain
+	# what we actually intend to do is create that user on the 
+	# target domain. Here we deduce what those are and redefine
+	# $domain and $user to suit.
+	if ( $v->domainIsAlias($domain) ){
 		unless (exists($opt{f})){ 
 			my $oldDomain = $domain;
-			$domain = $v->getAliasDomainTarget;
-			$v->setDomain($domain); 
+			$domain = $v->getAliasDomainTarget($oldDomain);
 			$user =~ s/$oldDomain/$domain/;
-			$v->setUser($user);			
-#			print "Domain: $domain\nUser:$user\n";
-#			exit 0;
 		}
 	}
-	unless($v->domainExists){
+	unless($v->domainExists($domain)){
 		print STDERR "Domain $domain doesn't exist. Use -f to proceed anyway\n";
 		exit(1) unless(exists($opt{f}))
 	}
@@ -57,7 +54,7 @@ if ($user =~ /\@(.+)$/){
 
 my $password;
 if (exists($opt{g})){
-	$password = `pwgen 10 1`;
+	$password = $v->_generatePassword(10);
 	chomp $password;
 }elsif(exists($opt{p})){
 	$password = $opt{p};
@@ -66,11 +63,11 @@ while ($password eq ''){
 	$password = &getPassword()
 }
 
-$v->createUser();
-$v->changePassword($password);
+$v->createUser( username => $user);
+$v->changePassword($user, $password);
 
-if($v->userExists()){
-	if (exists($opt{g})){
+if( $v->userExists($user) ){
+	if ( exists($opt{g}) ){
 		print "Password: $password\n";
 	}
 	exit 0;
