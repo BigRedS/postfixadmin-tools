@@ -7,39 +7,37 @@ my %opt;
 getopts('lh', \%opt);
 
 my $domain = pop;#
-if(exists($opt{h})){
+if( exists($opt{h}) ){
 	print usage();
 	exit 0;
 }
 
 my $v = Mail::Postfixadmin->new();
 
-if ($domain eq ''){
-	foreach($v->listDomains){
-		$v->setDomain($_);
-		if ($v->domainIsAlias){
-			my $target = ($v->getAliasDomainTarget);
-			print "$_\t(alias for $target)\n";
+if ( $domain eq '' ){
+	foreach my $domain ( $v->getDomains ){
+		if ( $v->domainIsAlias($domain) ){
+			my $target = $v->getAliasDomainTarget($domain);
+			print "$domain\t(alias for $target)\n";
 		}else{
-			print "$_\n";
+			print "$domain\n";
 		}
 	}
 	exit 0;
 }
 
 my %info;
-$v->setDomain($domain);
-if ($v->domainExists){
-	if ($v->domainIsAlias){
-		$v->setDomain($v->getAliasDomainTarget);
+if ( $v->domainExists($domain) ){
+	if ( $v->domainIsAlias($domain) ){
+		$domain = $v->getAliasDomainTarget($domain);
 	}
 	if(exists($opt{l})){
-		foreach($v->getUsers){
+		foreach( $v->getUsers($domain) ){
 			print $_."\n";
 		}
 	}else{
-		%info = $v->getDomainInfo();
-		foreach(sort(keys(%info))){
+		%info = $v->getDomainInfo($domain);
+		foreach( sort( keys(%info) ) ){
 			unless($_ =~ /^mailboxes$/){
 				printf('%-14s%s', $_, $info{$_});
 				print "\n";
