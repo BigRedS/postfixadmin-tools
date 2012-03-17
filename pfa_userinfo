@@ -6,34 +6,32 @@ use Mail::Postfixadmin;
 
 my $v = Mail::Postfixadmin->new();
 my $user = $ARGV[0];
-if ($user eq ''){
+if ( $user eq '' ){
 	print "Error: I need a user\n";
 	exit 1;
 }
 
-# If the username doesn't contain an '@' it's a 
-# domain name, so we'll print all the users:
-if ($user !~ /\@/){
-	my $domain = $user;
-	$v->setDomain($domain);
-	if ($v->domainIsAlias){
-		$v->setDomain($v->getAliasDomainTarget);
-	}
-	foreach($v->getUsers){
-		print "$_\n";
-	}
-	exit 0;
-}
-
-$v->setUser($user);
-unless($v->userExists){
+## If the username doesn't contain an '@' it's a 
+## domain name, so we'll print all the users:
+#if ( $user !~ /\@/ ){
+#	if ($v->domainIsAlias($domain)){
+#		$domain = $v->getAliasDomainTarget($domain);
+#	}
+#	foreach( $v->getUsers($domain) ){
+#		print "$_\n";
+#	}
+#	exit 0;
+#}
+#
+unless( $v->userExists($user) ){
 	print "$user doesn't exist\n";
 	exit 1;
 }
 
 # Handle aliases gracefully:
-if($v->userIsAlias){
-	my $target = $v->getAliasUserTarget;
+my $olduser;
+if( $v->userIsAlias($user) ){
+	my $target = $v->getAliasUserTarget($user);
 	if ($target =~ /,/){
 		print "$user is an alias for:\n";
 		foreach(split(/,\s*/, $target)){
@@ -41,10 +39,11 @@ if($v->userIsAlias){
 		}
 		exit 1;
 	}else{
-		$v->setUser($target);
 		print "$user is an alias for $target";
+		$olduser = $user;
+		$user = $target;
 	}
-	if ($v->userExists){
+	if ($v->userExists($user)){
 		print "\n";
 	}else{
 		print " which is not configured on this system\n";
@@ -53,18 +52,16 @@ if($v->userIsAlias){
 
 # To avoid confusion post the alias dealings, we'll reset our idea
 # of the user
-$user = $v->getUser();
 $user =~ /@(.+)$/;
 my $domain = $1;
-$v->setDomain($domain);
-if ($v->domainIsAlias){
-	my $targetDomain = $v->getAliasDomainTarget;
+if ( $v->domainIsAlias($domain) ){
+	my $targetDomain = $v->getAliasDomainTarget($domain);
 	$user =~ s/$domain/$targetDomain/;
 }
 
-$v->setUser($user);
-my %info = $v->getUserInfo();
-foreach(sort(keys(%info))){
+my %info = $v->getUserInfo($user);
+print Dumper(%info);
+foreach( sort(keys(%info)) ){
 	unless($_ =~ /^mailboxes$/){
 		printf('%-14s%s', $_, $info{$_});
 		print "\n";
