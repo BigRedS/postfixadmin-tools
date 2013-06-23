@@ -29,6 +29,7 @@ if ( $domain eq '' ){
 my %info;
 if ( $pfa->domainExists($domain) ){
 	if ( $pfa->domainIsAlias($domain) ){
+		$info{'isalias'} = 1;
 		$domain = $pfa->getAliasDomainTarget($domain);
 	}
 	if(exists($opt{l})){
@@ -36,12 +37,13 @@ if ( $pfa->domainExists($domain) ){
 			print $_."\n";
 		}
 	}else{
-		%info = $pfa->getDomainInfo($domain);
+		%info =(%info, $pfa->getDomainInfo($domain));
 		foreach( sort( keys(%info) ) ){
-			unless($_ =~ /^mailboxes$/){
-				printf('%-14s%s', $_, $info{$_});
-				print "\n";
+			if(ref($info{$_}) =~ /^ARRAY/){
+				$info{$_} = scalar @{$info{$_}};
 			}
+			printf('%-14s%s', $_, scalar($info{$_}));
+			print "\n";
 		}
 	}
 }else{
