@@ -5,8 +5,14 @@ use Getopt::Std;
 
 use strict;
 
+use Data::Dumper;
+
 my %opt;
-getopts('vf', \%opt);
+# d description
+# I make inactive
+# a max aliases
+
+getopts('vfd:Ia:', \%opt);
 if($opt{'h'}){
 	print usage();
 	exit;
@@ -32,7 +38,15 @@ if( $pfa->domainExists( $domain )){
 	exit 0;
 }
 
-if($pfa->createDomain( domain => $domain)){
+my %dominfo;
+$dominfo{'domain'} = $domain;
+$dominfo{'description'} = $opt{'d'};
+$dominfo{'active'} = 0 if $opt{'I'};
+$dominfo{'aliases'} = $opt{'a'} if $opt{'a'};
+
+
+
+if($pfa->createDomain( %dominfo )){
 	print $domain if exists($opt{v});
 }else{
 	print "Unknown Error creating domain $domain: $@";
@@ -53,14 +67,18 @@ $return
 
 Adds a domain to the mail system. 
 
+pfa-adddomain [options] domain name
+
+Options:
+
+	 -a [num]  set the maximum number of allowed aliases for the domain
+	 -d [desc] add 'desc' as the domain's description
+	 -I        create an inactive domain
+   -v        be verbose; print the name of the domain name when it's created.
+
 Usage:
 
   vadddomain <domain>
-
-Exit values:
- 0: success or nothing to do
- 1: bad arguments
- 2: error
 
 EOF
 }
@@ -81,12 +99,19 @@ on a Postfix/MySQL system; postfixadmin-tools
 pfa-adddomain [options] domain name
 
 Options:
-   -v    be verbose; print the name of the domain name when it's created.
+
+	 -a [num]  set the maximum number of allowed aliases for the domain
+	 -d [desc] add 'desc' as the domain's description
+	 -I        create an inactive domain
+   -v        be verbose; print the name of the domain name when it's created.
 
 =head1 EXAMPLES
 
 add example.net:
  pfa-adddomain example.net
+
+add example.org with a max of 10 aliases and a description of "example organisation":
+ pfa-adddomain -d "example organisation" -a 10 example.org
 
 =head1 EXIT STATUS
 
