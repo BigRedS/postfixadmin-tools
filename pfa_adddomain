@@ -1,34 +1,45 @@
 #! /usr/bin/perl
 
 use Mail::Postfixadmin;
-use Getopts::Simple;
+use Getopt::Std;
 
 use strict;
 
+my %opt;
+getopts('vf', \%opt);
+if($opt{'h'}){
+	print usage();
+	exit;
+}
+
 my $domain = shift;
 
-my $v = Mail::Postfixadmin->new();
+if($domain =~ /^$/){
+	print STDERR "No domain passed\n\n";
+	print STDERR usage();
+	exit 1;
+}
 
-if ($domain =~ /^$/ || $domain =~ /^-?-h$/){
-	print usage();
+if($domain =~ /@/){
+	print STDERR "That looks like an email address, not a domain; aborting\n";;
+	exit 1;
+}
+
+my $pfa = Mail::Postfixadmin->new();
+
+if( $pfa->domainExists( $domain )){
+	print STDERR "Domain $domain already configured; aborting\n";
 	exit 0;
 }
 
-if ($domain =~ /@/){
-	print "That looks like an email addres, not a domain\n";
-}
-
-if( $v->domainExists( $domain )){
-	print STDERR "Domain $domain already configured\n";
-	exit 1;
-}
-if($v->createDomain( domain => $domain)){
+if($pfa->createDomain( domain => $domain)){
 	print $domain if exists($opt{v});
 }else{
 	print "Unknown Error creating domain $domain: $@";
+	exit 2;
 }
 
-exit;
+exit 0;
 
 sub usage{
 	my $message = shift;
@@ -46,7 +57,11 @@ Usage:
 
   vadddomain <domain>
 
-Returns 0 on success, 1 on any sort of failure
+Exit values:
+ 0: success or nothing to do
+ 1: bad arguments
+ 2: error
+
 EOF
 }
 
@@ -54,18 +69,16 @@ EOF
 
 =head1 NAME
 
-vadddomain - add a domain to the system
+pfa_adddomain - add a domain to the system
 
 =head1 DESCRIPTION
 
 This is part of Avi's collection of scripts to emulate vpopmail's scripts 
-on a Postfix/MySQL system. 
-
-Any feature-parity is purely coincidental.
+on a Postfix/MySQL system; postfixadmin-tools
 
 =head1 SYNOPSIS
 
-vadddomain [options] domain name
+pfa-adddomain [options] domain name
 
 Options:
    -v    be verbose; print the name of the domain name when it's created.
@@ -73,19 +86,18 @@ Options:
 =head1 EXAMPLES
 
 add example.net:
- vadddomain example.net
+ pfa-adddomain example.net
 
 =head1 EXIT STATUS
 
-Exits 0 on success, 1 on any sort of failure. Useful error messages are 
-used as a poor substitute for sensible exit statuses.
+0: success or nothing to do (domain exists)
+1: bad arguments
+2: tried to proceed, failed somewhere
 
 =head1 BUGS
 
-There's currently no way to modify domains in this collection of scripts 
-(though the module offers functions to do it). There's also no way to 
-create domains with anything but defaults, so you'll have to make do with 
-those for now.
+Should be reported on GitHub:
+    https://github.com/BigRedS/postfixadmin-tools/issues
 
 =head1 AUTHOR
 
@@ -93,5 +105,5 @@ Avi wrote this.
 
 http://avi.co
 
-http://github.com/BigRedS/vpostmail
+http://github.com/BigRedS/postfixadmin-tools
 
