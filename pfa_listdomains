@@ -3,9 +3,9 @@
 use strict;
 use Mail::Postfixadmin;
 
-my $v = Mail::Postfixadmin->new();
+my $pfa = Mail::Postfixadmin->new();
 
-my @domains = $v->getDomains;
+my @domains = $pfa->getDomains;
 
 print join("\n", @domains);
 print "\n";
