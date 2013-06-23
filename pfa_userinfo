@@ -3,47 +3,36 @@
 use strict;
 use Mail::Postfixadmin;
 
-
-my $v = Mail::Postfixadmin->new();
+my $pfa = Mail::Postfixadmin->new();
 my $user = $ARGV[0];
 if ( $user eq '' ){
 	print "Error: I need a user\n";
 	exit 1;
 }
 
-## If the username doesn't contain an '@' it's a 
-## domain name, so we'll print all the users:
-#if ( $user !~ /\@/ ){
-#	if ($v->domainIsAlias($domain)){
-#		$domain = $v->getAliasDomainTarget($domain);
-#	}
-#	foreach( $v->getUsers($domain) ){
-#		print "$_\n";
-#	}
-#	exit 0;
-#}
-#
-unless( $v->userExists($user) ){
-	print "$user doesn't exist\n";
+unless( $pfa->userExists($user) ){
+	print STDERR "$user doesn't exist\n";
 	exit 1;
+}
+
+my ($local,$domain) = split(/@/, $user);
+if($pfa->domainIsAlias($domain)){
+	$domain = $pfa->getAliasDomainTarget($domain);
 }
 
 # Handle aliases gracefully:
 my $olduser;
-if( $v->userIsAlias($user) ){
-	my $target = $v->getAliasUserTarget($user);
-	if ($target =~ /,/){
-		print "$user is an alias for:\n";
-		foreach(split(/,\s*/, $target)){
-			print $_."\n";
-		}
+if( $pfa->userIsAlias($user) ){
+	my $target = join("\n\t", $pfa->getAliasUserTargets($user));
+	if ($target =~ /\n/){
+		print "$user is an alias for:\n\t$target\n";
 		exit 1;
 	}else{
-		print "$user is an alias for $target";
+		print "$user is an alias for $target\n";
 		$olduser = $user;
 		$user = $target;
 	}
-	if ($v->userExists($user)){
+	if ($pfa->userExists($user)){
 		print "\n";
 	}else{
 		print " which is not configured on this system\n";
@@ -54,16 +43,14 @@ if( $v->userIsAlias($user) ){
 # of the user
 $user =~ /@(.+)$/;
 my $domain = $1;
-if ( $v->domainIsAlias($domain) ){
-	my $targetDomain = $v->getAliasDomainTarget($domain);
+if ( $pfa->domainIsAlias($domain) ){
+	my $targetDomain = $pfa->getAliasDomainTarget($domain);
 	$user =~ s/$domain/$targetDomain/;
 }
-
-my %info = $v->getUserInfo($user);
-print Dumper(%info);
-foreach( sort(keys(%info)) ){
+my $info = $pfa->getUserInfo($user);
+foreach( sort(keys(%$info)) ){
 	unless($_ =~ /^mailboxes$/){
-		printf('%-14s%s', $_, $info{$_});
+		printf('%-14s%s', $_, $info->{$_});
 		print "\n";
 	}
 }

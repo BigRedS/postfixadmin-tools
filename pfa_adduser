@@ -23,8 +23,8 @@ if ($user eq ''){
         exit 1;
 }
 
-my $v = Mail::Postfixadmin->new();
-if( $v->userExists($user) ){
+my $pfa = Mail::Postfixadmin->new();
+if( $pfa->userExists($user) ){
         print "Error: User $user already exists\n";
         exit 1;
 }
@@ -36,14 +36,14 @@ if ( $user =~ /\@(.+)$/ ){
 	# what we actually intend to do is create that user on the 
 	# target domain. Here we deduce what those are and redefine
 	# $domain and $user to suit.
-	if ( $v->domainIsAlias($domain) ){
+	if ( $pfa->domainIsAlias($domain) ){
 		unless (exists($opt{f})){ 
 			my $oldDomain = $domain;
-			$domain = $v->getAliasDomainTarget($oldDomain);
+			$domain = $pfa->getAliasDomainTarget($oldDomain);
 			$user =~ s/$oldDomain/$domain/;
 		}
 	}
-	unless($v->domainExists($domain)){
+	unless($pfa->domainExists($domain)){
 		print STDERR "Domain $domain doesn't exist. Use -f to proceed anyway\n";
 		exit(1) unless(exists($opt{f}))
 	}
@@ -54,7 +54,7 @@ if ( $user =~ /\@(.+)$/ ){
 
 my $password;
 if (exists($opt{g})){
-	$password = $v->_generatePassword(10);
+	$password = $pfa->_generatePassword(10);
 	chomp $password;
 }elsif(exists($opt{p})){
 	$password = $opt{p};
@@ -63,10 +63,10 @@ while ($password eq ''){
 	$password = &getPassword()
 }
 
-$v->createUser( username => $user);
-$v->changePassword($user, $password);
+$pfa->createUser( username => $user);
+$pfa->changePassword($user, $password);
 
-if( $v->userExists($user) ){
+if( $pfa->userExists($user) ){
 	if ( exists($opt{g}) ){
 		print "Password: $password\n";
 	}

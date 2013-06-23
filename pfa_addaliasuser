@@ -3,7 +3,7 @@
 use strict;
 use Mail::Postfixadmin;
 use Getopt::Std;
-my $v = Mail::Postfixadmin->new();
+my $pfa = Mail::Postfixadmin->new();
 
 my $user = shift;
 my @targets = @ARGV;
@@ -14,9 +14,9 @@ if ($targets[0] !~ /.+/){
 	exit(1);
 }
 
-my $v = Mail::Postfixadmin->new();
+my $pfa = Mail::Postfixadmin->new();
 
-if( $v->userExists($user) ){
+if( $pfa->userExists($user) ){
 	print STDERR "Error: User $user already exists\n";
 	exit(1);
 }
@@ -29,13 +29,13 @@ if( $user =~ /@(.+)$/ ){
 }
 
 my $targets = join(', ', @targets);
-$v->createAliasUser(
+$pfa->createAliasUser(
 	alias  => $user,
 	target => $targets, 
 	domain => $domain
 );
 
-if( $v->userIsAlias($user) ){
+if( $pfa->userIsAlias($user) ){
 	exit(0);
 }else{
 	print "Something's up, alias isn't there.\n";

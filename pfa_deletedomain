@@ -17,31 +17,31 @@ if ($domain eq '' || $domain =~ /^-\w$/ || exists($opt{h})){
 	exit 1;
 }
 
-my $v = Mail::Postfixadmin->new();
+my $pfa = Mail::Postfixadmin->new();
 
-if ($v->domainExists($domain)){
-	if($v->domainIsAlias($domain)){
-		$v->removeAliasDomain($domain);
+if ($pfa->domainExists($domain)){
+	if($pfa->domainIsAlias($domain)){
+		$pfa->removeAliasDomain($domain);
 	}else{
 		unless(exists($opt{U})){
-			foreach($v->getUsers($domain)){
+			foreach($pfa->getUsers($domain)){
 				print "removing $_ ";
-				if($v->removeUser($_)){
+				if($pfa->removeUser($_)){
 					print "done\n"
 				}else{
-					print "ERROR: $v->{errstr}\n";
+					print "ERROR: $pfa->{errstr}\n";
 				}
 			}
 		}
 	}
 	print "removing domain $domain ";
-	$v->removeDomain($domain);
+	$pfa->removeDomain($domain);
 }else{
 	print STDERR "Domain $domain not found\n";
 	exit 1
 }
 
-if ($v->domainExists($domain)){
+if ($pfa->domainExists($domain)){
 	print STDERR "Error: I deleted it, but it's still there\n";
 	exit 1;
 }else{

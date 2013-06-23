@@ -15,20 +15,21 @@ if ($user eq '' || $user eq '-h' || exists($opt{h})){
 
 print "Handy warning: I can't even find mailboxes yet, let alone delete them :)\n";
 
-my $v = Mail::Postfixadmin->new();
+my $pfa = Mail::Postfixadmin->new();
 
-if ( $v->userExists($user) ){
-	if( $v->userIsAlias($user) ){
-		$v->removeAliasUser($user);
+
+if ( $pfa->userExists($user) ){
+	if( $pfa->userIsAlias($user) ){
+		$pfa->removeAliasUser($user);
 	}else{
-		$v->removeUser($user);
+		$pfa->removeUser($user);
 	}
 }else{
 	print STDERR "User $user doesn't exist\n";
 	exit 1;
 }
 
-if( $v->userExists($user) ){
+if( $pfa->userExists($user) ){
 	print STDERR "Something's up. I tried to delete the user but it's still there.\n";
 	exit 1;
 }
