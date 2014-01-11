@@ -1,0 +1,16 @@
+postfixadmin-tools
+
+A set of command-line tools for interacting with a postfixadmin
+system.
+
+* pfa_addaliasdomain
+* pfa_addaliasuser
+* pfa_adddomain
+* pfa_adduser
+* pfa_changepassword
+* pfa_deletedomain
+* pfa_deleteuser
+* pfa_domaininfo
+* pfa_listdomains
+* pfa_userinfo
+

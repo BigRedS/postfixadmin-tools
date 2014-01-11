@@ -1,0 +1,7 @@
+---
+package: postfixadmin-tools
+  maintainer: Avi Greenbury <ialoneambest@gmail.com>
+	description: Command-line tools for Postfixadmin systems
+	requires:
+	  libmail-postfixadmin-perl: 0
+		perl: 0
