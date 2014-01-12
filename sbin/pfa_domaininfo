@@ -57,7 +57,7 @@ return <<EOF;
 vdominfo
 
 Usage: 
-  vdominfo [options[ <domain>
+  vdominfo [options] <domain>
 
 Prints out info on a domain. 
 
