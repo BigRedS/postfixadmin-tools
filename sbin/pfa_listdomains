@@ -15,9 +15,9 @@ if($opt{'h'}){
 my $pfa = Mail::Postfixadmin->new();
 
 my @domains = $pfa->getDomains;
-
-print join("\n", @domains);
-print "\n";
+foreach(sort(@domains)){
+	print $_."\n" unless $_ eq "ALL";
+}
 
 sub usage{
 return <<EOF;
