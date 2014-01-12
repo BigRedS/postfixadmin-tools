@@ -20,7 +20,7 @@ if ( $domain eq '' ){
 			my $target = $pfa->getAliasDomainTarget($domain);
 			print "$domain\t(alias for $target)\n";
 		}else{
-			print "$domain\n";
+			print "$domain\n" unless $domain eq "ALL";
 		}
 	}
 	exit 0;
